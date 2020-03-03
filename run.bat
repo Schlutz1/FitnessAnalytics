@@ -1,0 +1,1 @@
+jupyter nbconvert --ExecutePreprocessor.timeout=600 --to notebook --execute C:\Users\Max\Documents\GitHub\fitness_analytics\process_fitness_data.ipynb
