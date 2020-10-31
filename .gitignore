@@ -1,7 +1,3 @@
-# Development
-archive/
-*.exe
-
 # Tableau
 *.twb
 *.twbx
@@ -19,6 +15,8 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+conf/
+archive/
 develop-eggs/
 dist/
 downloads/
@@ -77,6 +75,7 @@ instance/
 
 # Scrapy stuff:
 .scrapy
+*.exe
 
 # Sphinx documentation
 docs/_build/
