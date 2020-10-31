@@ -8,10 +8,16 @@ import time
 import json
 import os, sys
 
+abs_path = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(abs_path)
+
+conf_path = os.path.join(abs_path, '..', 'conf')
+resources_path = os.path.join(abs_path, '..', 'resources')
+
 
 def getStravaSecrets() :
     '''fn to return strava secrets'''
-    with open('./stravaSecrets.json') as json_file:
+    with open(os.path.join(conf_path, 'stravaSecrets.json')) as json_file:
         strava_secrets = json.load(json_file)
 
     strava_secrets["redirect_uri"] = 'http://localhost/exchange_token'
@@ -32,7 +38,7 @@ def completeStravaAuth(strava_secrets, auth_url) :
     
     # attempt to automate in selenium
 
-    driver = webdriver.Chrome()
+    driver = webdriver.Chrome(executable_path=os.path.join(resources_path, 'chromedriver'))
     driver.get(auth_url)
 
 
@@ -71,7 +77,7 @@ def completeStravaAuth(strava_secrets, auth_url) :
     
     return f_access_token
     
-def findStravaActivities() :
+def getStravaActivities() :
     '''fn to return dataframe of all strava activities'''
     
     # globals

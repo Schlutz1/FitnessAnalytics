@@ -16,11 +16,13 @@ __pycache__/
 .Python
 build/
 conf/
+extracts/
 archive/
 develop-eggs/
 dist/
 downloads/
 eggs/
+resources/
 .eggs/
 lib/
 lib64/
