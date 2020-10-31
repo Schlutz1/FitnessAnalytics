@@ -13101,20 +13101,58 @@ div#notebook {
 <div class="prompt input_prompt">In&nbsp;[1]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># imports</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="o">%</span><span class="k">load_ext</span> autoreload
+<span class="o">%</span><span class="k">autoreload</span> 2
+
+<span class="c1"># imports</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">import</span> <span class="nn">pprint</span>
 
 <span class="kn">from</span> <span class="nn">pydrive.drive</span> <span class="k">import</span> <span class="n">GoogleDrive</span>
 <span class="kn">from</span> <span class="nn">pydrive.auth</span> <span class="k">import</span> <span class="n">GoogleAuth</span>
-<span class="kn">from</span> <span class="nn">pandleau</span> <span class="k">import</span> <span class="o">*</span>
+
 
 <span class="c1"># misc objects</span>
 <span class="n">gauth</span> <span class="o">=</span> <span class="n">GoogleAuth</span><span class="p">()</span>
 <span class="n">drive</span> <span class="o">=</span> <span class="n">GoogleDrive</span><span class="p">(</span><span class="n">gauth</span><span class="p">)</span>
 
-<span class="c1"># misc globals</span>
+
+<span class="c1"># misc modules</span>
+<span class="kn">from</span> <span class="nn">getStravaActivities</span> <span class="k">import</span> <span class="n">findStravaActivities</span>
+<span class="kn">from</span> <span class="nn">fitnessHelperFunctions</span> <span class="k">import</span> <span class="o">*</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>You are using the Extract API 2.0, please save the output as .hyper format
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># misc globals</span>
+
 <span class="n">path_to_conf</span> <span class="o">=</span> <span class="s2">&quot;./conf/&quot;</span>
 <span class="n">path_to_logs</span> <span class="o">=</span> <span class="s2">&quot;./logs/&quot;</span>
 <span class="n">path_to_tableau</span> <span class="o">=</span> <span class="s2">&quot;./tableau/&quot;</span>
@@ -13122,9 +13160,17 @@ div#notebook {
 <span class="n">file_tmp</span> <span class="o">=</span> <span class="s2">&quot;tmp_FY20 H1 Workout Tracker.xlsx&quot;</span>
 <span class="n">file_out_weightlifting</span> <span class="o">=</span> <span class="s2">&quot;weightlifting_extract.hyper&quot;</span>
 <span class="n">file_out_cardio</span> <span class="o">=</span> <span class="s2">&quot;cardio_extract.hyper&quot;</span>
+<span class="n">file_out_strava</span> <span class="o">=</span> <span class="s2">&quot;strava_extract.hyper&quot;</span>
 
-<span class="n">lookup_weightlifting</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Bench Press&quot;</span><span class="p">,</span> <span class="s2">&quot;Deadlifts&quot;</span><span class="p">,</span> <span class="s2">&quot;Shoulder Press&quot;</span><span class="p">,</span> <span class="s2">&quot;Squat&quot;</span><span class="p">}</span>
+<span class="n">lookup_weightlifting</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Bench Press&quot;</span><span class="p">,</span> 
+    <span class="s2">&quot;Deadlifts&quot;</span><span class="p">,</span> 
+    <span class="s2">&quot;Shoulder Press&quot;</span><span class="p">,</span> 
+    <span class="s2">&quot;Squat&quot;</span>
+<span class="p">}</span>
+
 <span class="n">columns_weightlifting</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;workout_uid&#39;</span> <span class="p">:</span> <span class="s1">&#39;Workout UID&#39;</span><span class="p">,</span>
     <span class="s1">&#39;Rotation&#39;</span> <span class="p">:</span> <span class="s1">&#39;Rotation&#39;</span><span class="p">,</span>
     <span class="s1">&#39;1RM&#39;</span> <span class="p">:</span> <span class="s1">&#39;Goal 1RM&#39;</span><span class="p">,</span>
     <span class="s1">&#39;Workout&#39;</span> <span class="p">:</span> <span class="s1">&#39;Workout&#39;</span><span class="p">,</span>
@@ -13140,8 +13186,13 @@ div#notebook {
     <span class="s1">&#39;Notes&#39;</span> <span class="p">:</span> <span class="s1">&#39;Notes&#39;</span><span class="p">,</span>
     <span class="s1">&#39;timestamp&#39;</span> <span class="p">:</span> <span class="s2">&quot;Timestamp&quot;</span>
 <span class="p">}</span>
-<span class="n">lookup_cardio</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Run&quot;</span><span class="p">}</span>
+
+<span class="n">lookup_cardio</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Run&quot;</span>
+<span class="p">}</span>
+
 <span class="n">columns_cardio</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;workout_uid&#39;</span> <span class="p">:</span> <span class="s1">&#39;Workout UID&#39;</span><span class="p">,</span>
     <span class="s1">&#39;Rotation&#39;</span> <span class="p">:</span> <span class="s1">&#39;Rotation&#39;</span><span class="p">,</span>
     <span class="s1">&#39;Workout&#39;</span> <span class="p">:</span> <span class="s1">&#39;Workout&#39;</span><span class="p">,</span>
     <span class="s1">&#39;Exercise&#39;</span> <span class="p">:</span> <span class="s1">&#39;Exercise&#39;</span><span class="p">,</span>
@@ -13154,7 +13205,23 @@ div#notebook {
     <span class="s1">&#39;timestamp&#39;</span> <span class="p">:</span> <span class="s2">&quot;Timestamp&quot;</span>
 <span class="p">}</span>
 
+<span class="n">mimetypes</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;application/vnd.google-apps.document&#39;</span><span class="p">:</span> <span class="s1">&#39;application/vnd.openxmlformats-officedocument.wordprocessingml.document&#39;</span><span class="p">,</span> <span class="c1"># Drive Document files as MS Word files.</span>
+    <span class="s1">&#39;application/vnd.google-apps.spreadsheet&#39;</span><span class="p">:</span> <span class="s1">&#39;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&#39;</span> <span class="c1"># Drive Sheets files as MS Excel files.</span>
+<span class="p">}</span>
+</pre></div>
 
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># init</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;SYSTEM INIT: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
     <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="s1">&#39;%D </span><span class="si">%r</span><span class="s1">&#39;</span><span class="p">)</span>
 <span class="p">))</span>
@@ -13174,77 +13241,11 @@ div#notebook {
 
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>You are using the Extract API 2.0, please save the output as .hyper format
-SYSTEM INIT: 04/16/20 05:06:02 PM
+<pre>SYSTEM INIT: 07/20/20 07:47:30 PM
 </pre>
 </div>
 </div>
 
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[2]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># helper functions</span>
-
-<span class="k">def</span> <span class="nf">make_uid</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="p">:</span>
-    <span class="sd">&#39;&#39;&#39;creates workout uid&#39;&#39;&#39;</span>
-    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Rotation&#39;</span><span class="p">]))</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Workout&#39;</span><span class="p">]))</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Week&#39;</span><span class="p">]))</span>
-
-<span class="k">def</span> <span class="nf">make_datetime</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="p">:</span>
-    <span class="sd">&#39;&#39;&#39;constructs datetime object for each workout&#39;&#39;&#39;</span>
-    <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">notnull</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;Date&#39;</span><span class="p">])</span> <span class="p">:</span>
-        <span class="n">datetime_string</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;Date&#39;</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Time&#39;</span><span class="p">])</span>
-        <span class="k">return</span> <span class="n">datetime_string</span>
-
-<span class="k">def</span> <span class="nf">make_1rm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">:</span>
-    <span class="sd">&#39;&#39;&#39;calculates a theoretical 1RM for each lift&#39;&#39;&#39;</span>
-    <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">notnull</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">:</span>
-        <span class="n">r</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">w</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">/</span><span class="mi">30</span><span class="p">)</span>
-    <span class="k">return</span> <span class="kc">None</span> 
-    
-<span class="k">def</span> <span class="nf">make_conversion</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">out_file</span><span class="p">)</span> <span class="p">:</span>
-    <span class="sd">&#39;&#39;&#39;converts dataframe to tableau compliant format&#39;&#39;&#39;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-    <span class="n">tmp_df</span> <span class="o">=</span> <span class="n">pandleau</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
-
-    <span class="c1"># remove if file exists, write out new file</span>
-    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path_to_tableau</span><span class="p">,</span> <span class="n">out_file</span><span class="p">))</span> <span class="p">:</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path_to_tableau</span><span class="p">,</span> <span class="n">out_file</span><span class="p">))</span>
-    
-    <span class="c1"># tableau conversion</span>
-    <span class="n">tmp_df</span><span class="o">.</span><span class="n">to_tableau</span><span class="p">(</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path_to_tableau</span><span class="p">,</span> <span class="n">out_file</span><span class="p">),</span> 
-        <span class="n">add_index</span><span class="o">=</span><span class="kc">False</span>
-    <span class="p">)</span>
-
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;PYTHON: </span><span class="si">{0}</span><span class="s2"> conversion complete&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path_to_tableau</span><span class="p">,</span> <span class="n">out_file</span><span class="p">)))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;PYTHON: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">/%m/%Y %H:%M&quot;</span><span class="p">)))</span>
-
-<span class="k">def</span> <span class="nf">clean_logs</span><span class="p">()</span> <span class="p">:</span>
-    <span class="sd">&#39;&#39;&#39;cleans working directory of logs generated by conversion process&#39;&#39;&#39;</span>
-    <span class="c1"># clean up log files</span>
-    <span class="n">log_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s2">&quot;logs&quot;</span><span class="p">)</span>
-
-    <span class="n">log_files</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s2">&quot;./&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;./&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">))</span> <span class="ow">and</span> <span class="s2">&quot;.log&quot;</span> <span class="ow">in</span> <span class="n">f</span>
-        <span class="ow">or</span> <span class="s2">&quot;hyper_db_&quot;</span> <span class="ow">in</span> <span class="n">f</span>
-    <span class="p">]</span>
-
-    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">log_files</span> <span class="p">:</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">file</span><span class="p">))</span>
-
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">PYTHON: Directory cleaned&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;PYTHON: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">/%m/%Y %H:%M&quot;</span><span class="p">)))</span>
-</pre></div>
-
-    </div>
 </div>
 </div>
 
@@ -13259,14 +13260,10 @@ SYSTEM INIT: 04/16/20 05:06:02 PM
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># extract raw log from google drive</span>
-<span class="n">mimetypes</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;application/vnd.google-apps.document&#39;</span><span class="p">:</span> <span class="s1">&#39;application/vnd.openxmlformats-officedocument.wordprocessingml.document&#39;</span><span class="p">,</span> <span class="c1"># Drive Document files as MS Word files.</span>
-    <span class="s1">&#39;application/vnd.google-apps.spreadsheet&#39;</span><span class="p">:</span> <span class="s1">&#39;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&#39;</span> <span class="c1"># Drive Sheets files as MS Excel files.</span>
-<span class="p">}</span>
 
 <span class="n">file_list</span> <span class="o">=</span> <span class="n">drive</span><span class="o">.</span><span class="n">ListFile</span><span class="p">({</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="s2">&quot;&#39;root&#39; in parents and trashed=false&quot;</span><span class="p">})</span><span class="o">.</span><span class="n">GetList</span><span class="p">();</span>
 <span class="k">for</span> <span class="n">file1</span> <span class="ow">in</span> <span class="n">file_list</span><span class="p">:</span>
@@ -13308,9 +13305,16 @@ Authentication successful.
 </div>
 
 </div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h4 id="Extract-data-from-google-drive">Extract data from google drive<a class="anchor-link" href="#Extract-data-from-google-drive">&#182;</a></h4>
+</div>
+</div>
+</div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># read in tmp file to dataframe</span>
@@ -13334,14 +13338,14 @@ Authentication successful.
 
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>(207, 13)
+<pre>(227, 13)
 </pre>
 </div>
 </div>
 
 <div class="output_area">
 
-    <div class="prompt output_prompt">Out[4]:</div>
+    <div class="prompt output_prompt">Out[5]:</div>
 
 
 
@@ -13382,18 +13386,18 @@ Authentication successful.
   <tbody>
     <tr>
       <td>0</td>
-      <td>6.0</td>
-      <td>68</td>
+      <td>7.0</td>
+      <td>NaN</td>
       <td>1.0</td>
       <td>Shoulder Press</td>
       <td>1.0</td>
       <td>3.0</td>
       <td>5</td>
       <td>65, 75, 85</td>
-      <td>5x57.5</td>
-      <td>2020-02-16</td>
-      <td>20:00:00</td>
-      <td>91.6</td>
+      <td>5x50</td>
+      <td>2020-07-12</td>
+      <td>16:00:00</td>
+      <td>NaN</td>
       <td>NaN</td>
     </tr>
     <tr>
@@ -13406,9 +13410,9 @@ Authentication successful.
       <td>3.0</td>
       <td>3</td>
       <td>70, 80, 90</td>
-      <td>4x60</td>
-      <td>2020-02-28</td>
-      <td>14:00:00</td>
+      <td>NaN</td>
+      <td>NaT</td>
+      <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
     </tr>
@@ -13422,10 +13426,10 @@ Authentication successful.
       <td>3.0</td>
       <td>5 / 3 / 1</td>
       <td>75, 85, 95</td>
-      <td>1x65</td>
-      <td>2020-03-07</td>
-      <td>12:15:00</td>
-      <td>90.7</td>
+      <td>NaN</td>
+      <td>NaT</td>
+      <td>NaN</td>
+      <td>NaN</td>
       <td>NaN</td>
     </tr>
   </tbody>
@@ -13442,40 +13446,18 @@ Authentication successful.
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<hr>
-<h2 id="Transform-Data-">Transform Data <a class="anchor" id="transform_data" /><a class="anchor-link" href="#Transform-Data-">&#182;</a></h2><ul>
-<li>Create general calculated fields<ul>
-<li>Create workout uid</li>
-<li>Format date and time</li>
-</ul>
-</li>
-<li>Split out Weightlifting and Cardio</li>
-<li>Create exercise type specific calculated fields<ul>
-<li>format date and time columns</li>
-</ul>
-</li>
-</ul>
-
+<h4 id="Extract-data-from-strava">Extract data from strava<a class="anchor-link" href="#Extract-data-from-strava">&#182;</a></h4>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># drop junk data, retain only recorded exercises</span>
-<span class="n">df_raw</span> <span class="o">=</span> <span class="n">df_raw</span><span class="p">[(</span><span class="n">df_raw</span><span class="p">[</span><span class="s1">&#39;Exercise&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">!=</span><span class="kc">True</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df_raw</span><span class="p">[</span><span class="s1">&#39;Week&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">!=</span><span class="kc">True</span><span class="p">)]</span>
-
-<span class="c1"># propogate codes down for uid</span>
-<span class="n">df_raw</span><span class="p">[[</span><span class="s1">&#39;Rotation&#39;</span><span class="p">,</span> <span class="s1">&#39;Workout&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">df_raw</span><span class="p">[[</span><span class="s1">&#39;Rotation&#39;</span><span class="p">,</span> <span class="s1">&#39;Workout&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;ffill&#39;</span><span class="p">)</span>
-<span class="n">df_raw</span><span class="p">[</span><span class="s1">&#39;workout_uid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_raw</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">make_uid</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">df_raw</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;workout_uid&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-<span class="c1"># format date and time columns</span>
-<span class="n">df_raw</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_raw</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">make_datetime</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-
-<span class="n">df_raw</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_strava</span> <span class="o">=</span> <span class="n">findStravaActivities</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">df_strava</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="n">df_strava</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 </pre></div>
 
     </div>
@@ -13488,7 +13470,18 @@ Authentication successful.
 
 <div class="output_area">
 
-    <div class="prompt output_prompt">Out[5]:</div>
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>(78, 48)
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[6]:</div>
 
 
 
@@ -13511,127 +13504,105 @@ Authentication successful.
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>Rotation</th>
-      <th>1RM</th>
-      <th>Workout</th>
-      <th>Exercise</th>
-      <th>Week</th>
-      <th>Sets</th>
-      <th>Reps</th>
-      <th>% 1RM (pace if running)</th>
-      <th>Actual Lift</th>
-      <th>Date</th>
-      <th>Time</th>
-      <th>Bodyweight</th>
-      <th>Notes</th>
-      <th>timestamp</th>
-    </tr>
-    <tr>
-      <th>workout_uid</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
+      <th>resource_state</th>
+      <th>athlete</th>
+      <th>name</th>
+      <th>distance</th>
+      <th>moving_time</th>
+      <th>elapsed_time</th>
+      <th>total_elevation_gain</th>
+      <th>type</th>
+      <th>workout_type</th>
+      <th>id</th>
+      <th>...</th>
+      <th>average_speed</th>
+      <th>max_speed</th>
+      <th>has_heartrate</th>
+      <th>heartrate_opt_out</th>
+      <th>display_hide_heartrate_option</th>
+      <th>elev_high</th>
+      <th>elev_low</th>
+      <th>pr_count</th>
+      <th>total_photo_count</th>
+      <th>has_kudoed</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>6_1.1</td>
-      <td>6.0</td>
-      <td>68</td>
-      <td>1.0</td>
-      <td>Shoulder Press</td>
-      <td>1.0</td>
-      <td>3.0</td>
-      <td>5</td>
-      <td>65, 75, 85</td>
-      <td>5x57.5</td>
-      <td>2020-02-16</td>
-      <td>20:00:00</td>
-      <td>91.6</td>
-      <td>NaN</td>
-      <td>2020-02-16 20:00:00</td>
+      <td>0</td>
+      <td>2</td>
+      <td>{'id': 46800838, 'resource_state': 1}</td>
+      <td>Evening Run</td>
+      <td>7568.3</td>
+      <td>2525</td>
+      <td>3131</td>
+      <td>75.4</td>
+      <td>Run</td>
+      <td>0</td>
+      <td>3783975156</td>
+      <td>...</td>
+      <td>2.997</td>
+      <td>10.2</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>95.8</td>
+      <td>77.9</td>
+      <td>0</td>
+      <td>0</td>
+      <td>False</td>
     </tr>
     <tr>
-      <td>6_1.2</td>
-      <td>6.0</td>
-      <td>NaN</td>
-      <td>1.0</td>
-      <td>Shoulder Press</td>
-      <td>2.0</td>
-      <td>3.0</td>
-      <td>3</td>
-      <td>70, 80, 90</td>
-      <td>4x60</td>
-      <td>2020-02-28</td>
-      <td>14:00:00</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>2020-02-28 14:00:00</td>
-    </tr>
-    <tr>
-      <td>6_1.3</td>
-      <td>6.0</td>
-      <td>NaN</td>
-      <td>1.0</td>
-      <td>Shoulder Press</td>
-      <td>3.0</td>
-      <td>3.0</td>
-      <td>5 / 3 / 1</td>
-      <td>75, 85, 95</td>
-      <td>1x65</td>
-      <td>2020-03-07</td>
-      <td>12:15:00</td>
+      <td>1</td>
+      <td>2</td>
+      <td>{'id': 46800838, 'resource_state': 1}</td>
+      <td>Went for a run, forgot my puffer, had an asthm...</td>
+      <td>5060.9</td>
+      <td>1704</td>
+      <td>2256</td>
+      <td>71.3</td>
+      <td>Run</td>
+      <td>0</td>
+      <td>3768887579</td>
+      <td>...</td>
+      <td>2.970</td>
+      <td>5.9</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
       <td>90.7</td>
-      <td>NaN</td>
-      <td>2020-03-07 12:15:00</td>
+      <td>48.5</td>
+      <td>0</td>
+      <td>0</td>
+      <td>False</td>
     </tr>
     <tr>
-      <td>6_1.4</td>
-      <td>6.0</td>
-      <td>NaN</td>
-      <td>1.0</td>
-      <td>Shoulder Press</td>
-      <td>4.0</td>
-      <td>3.0</td>
-      <td>5</td>
-      <td>40, 50, 60</td>
-      <td>2x60</td>
-      <td>2020-03-15</td>
-      <td>20:48:00</td>
-      <td>90.7</td>
-      <td>NaN</td>
-      <td>2020-03-15 20:48:00</td>
-    </tr>
-    <tr>
-      <td>6_2.1</td>
-      <td>6.0</td>
-      <td>148.5</td>
-      <td>2.0</td>
-      <td>Deadlifts</td>
-      <td>1.0</td>
-      <td>3.0</td>
-      <td>5</td>
-      <td>65, 75, 85</td>
-      <td>4x120</td>
-      <td>2020-02-23</td>
-      <td>17:15:00</td>
-      <td>90.9</td>
-      <td>hangover</td>
-      <td>2020-02-23 17:15:00</td>
+      <td>2</td>
+      <td>2</td>
+      <td>{'id': 46800838, 'resource_state': 1}</td>
+      <td>Afternoon Run</td>
+      <td>6705.7</td>
+      <td>2183</td>
+      <td>2903</td>
+      <td>71.6</td>
+      <td>Run</td>
+      <td>0</td>
+      <td>3739581614</td>
+      <td>...</td>
+      <td>3.072</td>
+      <td>6.4</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>95.8</td>
+      <td>77.9</td>
+      <td>1</td>
+      <td>0</td>
+      <td>False</td>
     </tr>
   </tbody>
 </table>
+<p>3 rows × 48 columns</p>
 </div>
 </div>
 
@@ -13641,286 +13612,38 @@ Authentication successful.
 </div>
 
 </div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[6]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># create seperate datasets</span>
-
-<span class="c1"># weightlifting</span>
-<span class="n">map_weightlifting</span> <span class="o">=</span> <span class="n">df_raw</span><span class="p">[</span><span class="s1">&#39;Exercise&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">lookup_weightlifting</span> <span class="k">else</span> <span class="kc">False</span><span class="p">)</span>
-<span class="n">df_weightlifting</span> <span class="o">=</span> <span class="n">df_raw</span><span class="p">[</span><span class="n">map_weightlifting</span><span class="o">==</span><span class="kc">True</span><span class="p">][</span><span class="nb">list</span><span class="p">(</span><span class="n">columns_weightlifting</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">df_weightlifting</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-
-<span class="n">df_weightlifting</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span> <span class="o">=</span> <span class="n">columns_weightlifting</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">display</span><span class="p">(</span><span class="n">df_weightlifting</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
-
-<span class="c1"># cardio</span>
-<span class="n">map_cardio</span> <span class="o">=</span> <span class="n">df_raw</span><span class="p">[</span><span class="s1">&#39;Exercise&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">lookup_cardio</span> <span class="k">else</span> <span class="kc">False</span><span class="p">)</span>
-<span class="n">df_cardio</span> <span class="o">=</span> <span class="n">df_raw</span><span class="p">[</span><span class="n">map_cardio</span><span class="o">==</span><span class="kc">True</span><span class="p">][</span><span class="nb">list</span><span class="p">(</span><span class="n">columns_cardio</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">df_cardio</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-
-<span class="n">df_cardio</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span> <span class="o">=</span> <span class="n">columns_cardio</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">display</span><span class="p">(</span><span class="n">df_cardio</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
-</pre></div>
-
-    </div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<hr>
+<h2 id="Transform-Data-">Transform Data <a class="anchor" id="transform_data" /><a class="anchor-link" href="#Transform-Data-">&#182;</a></h2>
 </div>
 </div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>(100, 14)
-</pre>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h4 id="Pre-process-general-data">Pre-process general data<a class="anchor-link" href="#Pre-process-general-data">&#182;</a></h4>
 </div>
 </div>
-
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-
-<div class="output_html rendered_html output_subarea ">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Rotation</th>
-      <th>Goal 1RM</th>
-      <th>Workout</th>
-      <th>Exercise</th>
-      <th>Week</th>
-      <th>Sets</th>
-      <th>Reps</th>
-      <th>% of Goal 1RM</th>
-      <th>Actual Lift</th>
-      <th>Date</th>
-      <th>Time</th>
-      <th>Bodyweight</th>
-      <th>Notes</th>
-      <th>Timestamp</th>
-    </tr>
-    <tr>
-      <th>workout_uid</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>6_1.1</td>
-      <td>6.0</td>
-      <td>68</td>
-      <td>1.0</td>
-      <td>Shoulder Press</td>
-      <td>1.0</td>
-      <td>3.0</td>
-      <td>5</td>
-      <td>65, 75, 85</td>
-      <td>5x57.5</td>
-      <td>2020-02-16</td>
-      <td>20:00:00</td>
-      <td>91.6</td>
-      <td>NaN</td>
-      <td>2020-02-16 20:00:00</td>
-    </tr>
-    <tr>
-      <td>6_1.2</td>
-      <td>6.0</td>
-      <td>NaN</td>
-      <td>1.0</td>
-      <td>Shoulder Press</td>
-      <td>2.0</td>
-      <td>3.0</td>
-      <td>3</td>
-      <td>70, 80, 90</td>
-      <td>4x60</td>
-      <td>2020-02-28</td>
-      <td>14:00:00</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>2020-02-28 14:00:00</td>
-    </tr>
-    <tr>
-      <td>6_1.3</td>
-      <td>6.0</td>
-      <td>NaN</td>
-      <td>1.0</td>
-      <td>Shoulder Press</td>
-      <td>3.0</td>
-      <td>3.0</td>
-      <td>5 / 3 / 1</td>
-      <td>75, 85, 95</td>
-      <td>1x65</td>
-      <td>2020-03-07</td>
-      <td>12:15:00</td>
-      <td>90.7</td>
-      <td>NaN</td>
-      <td>2020-03-07 12:15:00</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-</div>
-
-</div>
-
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>(29, 10)
-</pre>
-</div>
-</div>
-
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-
-<div class="output_html rendered_html output_subarea ">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Rotation</th>
-      <th>Workout</th>
-      <th>Exercise</th>
-      <th>Week</th>
-      <th>Average Pace</th>
-      <th>Total Distance</th>
-      <th>Date</th>
-      <th>Time</th>
-      <th>Notes</th>
-      <th>Timestamp</th>
-    </tr>
-    <tr>
-      <th>workout_uid</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>6_5.1</td>
-      <td>6.0</td>
-      <td>5.0</td>
-      <td>Run</td>
-      <td>1.0</td>
-      <td>05:58:00</td>
-      <td>6.25km</td>
-      <td>2020-02-25</td>
-      <td>20:10:00</td>
-      <td>NaN</td>
-      <td>2020-02-25 20:10:00</td>
-    </tr>
-    <tr>
-      <td>6_5.2</td>
-      <td>6.0</td>
-      <td>5.0</td>
-      <td>Run</td>
-      <td>2.0</td>
-      <td>05:40:00</td>
-      <td>6.30km</td>
-      <td>2020-03-04</td>
-      <td>18:22:00</td>
-      <td>NaN</td>
-      <td>2020-03-04 18:22:00</td>
-    </tr>
-    <tr>
-      <td>6_5.3</td>
-      <td>6.0</td>
-      <td>5.0</td>
-      <td>Run</td>
-      <td>3.0</td>
-      <td>06:01:00</td>
-      <td>6.31km</td>
-      <td>2020-03-09</td>
-      <td>19:47:00</td>
-      <td>NaN</td>
-      <td>2020-03-09 19:47:00</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-</div>
-
-</div>
-
-</div>
-</div>
-
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">In&nbsp;[7]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># weightlifting specific processing</span>
-<span class="n">df_weightlifting</span><span class="p">[</span><span class="s1">&#39;Calculated 1RM&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_weightlifting</span><span class="p">[</span><span class="s1">&#39;Actual Lift&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">make_1rm</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
-<span class="n">df_weightlifting</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># drop junk data, retain only recorded exercises</span>
+<span class="n">df_raw</span> <span class="o">=</span> <span class="n">df_raw</span><span class="p">[(</span><span class="n">df_raw</span><span class="p">[</span><span class="s1">&#39;Exercise&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">!=</span><span class="kc">True</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df_raw</span><span class="p">[</span><span class="s1">&#39;Week&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">!=</span><span class="kc">True</span><span class="p">)]</span>
+
+<span class="c1"># propogate codes down for uid</span>
+<span class="n">df_raw</span><span class="p">[[</span><span class="s1">&#39;Rotation&#39;</span><span class="p">,</span> <span class="s1">&#39;Workout&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">df_raw</span><span class="p">[[</span><span class="s1">&#39;Rotation&#39;</span><span class="p">,</span> <span class="s1">&#39;Workout&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;ffill&#39;</span><span class="p">)</span>
+<span class="n">df_raw</span><span class="p">[</span><span class="s1">&#39;workout_uid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_raw</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">make_uid</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="c1">#df_raw.set_index(&#39;workout_uid&#39;, inplace=True)</span>
+
+<span class="c1"># format date and time columns</span>
+<span class="n">df_raw</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_raw</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">make_datetime</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">df_raw</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 
     </div>
@@ -13957,6 +13680,201 @@ Authentication successful.
     <tr style="text-align: right;">
       <th></th>
       <th>Rotation</th>
+      <th>1RM</th>
+      <th>Workout</th>
+      <th>Exercise</th>
+      <th>Week</th>
+      <th>Sets</th>
+      <th>Reps</th>
+      <th>% 1RM (pace if running)</th>
+      <th>Actual Lift</th>
+      <th>Date</th>
+      <th>Time</th>
+      <th>Bodyweight</th>
+      <th>Notes</th>
+      <th>workout_uid</th>
+      <th>timestamp</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>7.0</td>
+      <td>NaN</td>
+      <td>1.0</td>
+      <td>Shoulder Press</td>
+      <td>1.0</td>
+      <td>3.0</td>
+      <td>5</td>
+      <td>65, 75, 85</td>
+      <td>5x50</td>
+      <td>2020-07-12</td>
+      <td>16:00:00</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>7.1.1</td>
+      <td>2020-07-12 16:00:00</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>7.0</td>
+      <td>NaN</td>
+      <td>1.0</td>
+      <td>Shoulder Press</td>
+      <td>2.0</td>
+      <td>3.0</td>
+      <td>3</td>
+      <td>70, 80, 90</td>
+      <td>NaN</td>
+      <td>NaT</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>7.1.2</td>
+      <td>NaT</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>7.0</td>
+      <td>NaN</td>
+      <td>1.0</td>
+      <td>Shoulder Press</td>
+      <td>3.0</td>
+      <td>3.0</td>
+      <td>5 / 3 / 1</td>
+      <td>75, 85, 95</td>
+      <td>NaN</td>
+      <td>NaT</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>7.1.3</td>
+      <td>NaT</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>7.0</td>
+      <td>NaN</td>
+      <td>1.0</td>
+      <td>Shoulder Press</td>
+      <td>4.0</td>
+      <td>3.0</td>
+      <td>5</td>
+      <td>40, 50, 60</td>
+      <td>NaN</td>
+      <td>NaT</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>7.1.4</td>
+      <td>NaT</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>7.0</td>
+      <td>NaN</td>
+      <td>2.0</td>
+      <td>Deadlifts</td>
+      <td>1.0</td>
+      <td>3.0</td>
+      <td>5</td>
+      <td>65, 75, 85</td>
+      <td>5x100</td>
+      <td>2020-07-12</td>
+      <td>16:00:00</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>7.2.1</td>
+      <td>2020-07-12 16:00:00</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h4 id="Seperate-datasets">Seperate datasets<a class="anchor-link" href="#Seperate-datasets">&#182;</a></h4>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># create seperate datasets</span>
+
+<span class="c1"># weightlifting</span>
+<span class="n">map_weightlifting</span> <span class="o">=</span> <span class="n">df_raw</span><span class="p">[</span><span class="s1">&#39;Exercise&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">lookup_weightlifting</span> <span class="k">else</span> <span class="kc">False</span><span class="p">)</span>
+<span class="n">df_weightlifting</span> <span class="o">=</span> <span class="n">df_raw</span><span class="p">[</span><span class="n">map_weightlifting</span><span class="o">==</span><span class="kc">True</span><span class="p">][</span><span class="nb">list</span><span class="p">(</span><span class="n">columns_weightlifting</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">df_weightlifting</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+<span class="n">df_weightlifting</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span> <span class="o">=</span> <span class="n">columns_weightlifting</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">df_weightlifting</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+
+<span class="c1"># cardio</span>
+<span class="n">map_cardio</span> <span class="o">=</span> <span class="n">df_raw</span><span class="p">[</span><span class="s1">&#39;Exercise&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">lookup_cardio</span> <span class="k">else</span> <span class="kc">False</span><span class="p">)</span>
+<span class="n">df_cardio</span> <span class="o">=</span> <span class="n">df_raw</span><span class="p">[</span><span class="n">map_cardio</span><span class="o">==</span><span class="kc">True</span><span class="p">][</span><span class="nb">list</span><span class="p">(</span><span class="n">columns_cardio</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">df_cardio</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+<span class="n">df_cardio</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span> <span class="o">=</span> <span class="n">columns_cardio</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">df_cardio</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>(116, 15)
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Workout UID</th>
+      <th>Rotation</th>
       <th>Goal 1RM</th>
       <th>Workout</th>
       <th>Exercise</th>
@@ -13970,49 +13888,31 @@ Authentication successful.
       <th>Bodyweight</th>
       <th>Notes</th>
       <th>Timestamp</th>
-      <th>Calculated 1RM</th>
-    </tr>
-    <tr>
-      <th>workout_uid</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>6_1.1</td>
-      <td>6.0</td>
-      <td>68</td>
+      <td>0</td>
+      <td>7.1.1</td>
+      <td>7.0</td>
+      <td>NaN</td>
       <td>1.0</td>
       <td>Shoulder Press</td>
       <td>1.0</td>
       <td>3.0</td>
       <td>5</td>
       <td>65, 75, 85</td>
-      <td>5x57.5</td>
-      <td>2020-02-16</td>
-      <td>20:00:00</td>
-      <td>91.6</td>
+      <td>5x50</td>
+      <td>2020-07-12</td>
+      <td>16:00:00</td>
       <td>NaN</td>
-      <td>2020-02-16 20:00:00</td>
-      <td>67.083333</td>
+      <td>NaN</td>
+      <td>2020-07-12 16:00:00</td>
     </tr>
     <tr>
-      <td>6_1.2</td>
-      <td>6.0</td>
+      <td>1</td>
+      <td>7.1.2</td>
+      <td>7.0</td>
       <td>NaN</td>
       <td>1.0</td>
       <td>Shoulder Press</td>
@@ -14020,17 +13920,17 @@ Authentication successful.
       <td>3.0</td>
       <td>3</td>
       <td>70, 80, 90</td>
-      <td>4x60</td>
-      <td>2020-02-28</td>
-      <td>14:00:00</td>
+      <td>NaN</td>
+      <td>NaT</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>2020-02-28 14:00:00</td>
-      <td>68.000000</td>
+      <td>NaN</td>
+      <td>NaT</td>
     </tr>
     <tr>
-      <td>6_1.3</td>
-      <td>6.0</td>
+      <td>2</td>
+      <td>7.1.3</td>
+      <td>7.0</td>
       <td>NaN</td>
       <td>1.0</td>
       <td>Shoulder Press</td>
@@ -14038,13 +13938,111 @@ Authentication successful.
       <td>3.0</td>
       <td>5 / 3 / 1</td>
       <td>75, 85, 95</td>
-      <td>1x65</td>
-      <td>2020-03-07</td>
-      <td>12:15:00</td>
-      <td>90.7</td>
       <td>NaN</td>
-      <td>2020-03-07 12:15:00</td>
-      <td>67.166667</td>
+      <td>NaT</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaT</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>(29, 11)
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Workout UID</th>
+      <th>Rotation</th>
+      <th>Workout</th>
+      <th>Exercise</th>
+      <th>Week</th>
+      <th>Average Pace</th>
+      <th>Total Distance</th>
+      <th>Date</th>
+      <th>Time</th>
+      <th>Notes</th>
+      <th>Timestamp</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>48</td>
+      <td>6.5.1</td>
+      <td>6.0</td>
+      <td>5.0</td>
+      <td>Run</td>
+      <td>1.0</td>
+      <td>05:58:00</td>
+      <td>6.25km</td>
+      <td>2020-02-25</td>
+      <td>20:10:00</td>
+      <td>NaN</td>
+      <td>2020-02-25 20:10:00</td>
+    </tr>
+    <tr>
+      <td>49</td>
+      <td>6.5.2</td>
+      <td>6.0</td>
+      <td>5.0</td>
+      <td>Run</td>
+      <td>2.0</td>
+      <td>05:40:00</td>
+      <td>6.30km</td>
+      <td>2020-03-04</td>
+      <td>18:22:00</td>
+      <td>NaN</td>
+      <td>2020-03-04 18:22:00</td>
+    </tr>
+    <tr>
+      <td>50</td>
+      <td>6.5.3</td>
+      <td>6.0</td>
+      <td>5.0</td>
+      <td>Run</td>
+      <td>3.0</td>
+      <td>06:01:00</td>
+      <td>6.31km</td>
+      <td>2020-03-09</td>
+      <td>19:47:00</td>
+      <td>NaN</td>
+      <td>2020-03-09 19:47:00</td>
     </tr>
   </tbody>
 </table>
@@ -14057,14 +14055,23 @@ Authentication successful.
 </div>
 
 </div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h4 id="Process-seperate-sets">Process seperate sets<a class="anchor-link" href="#Process-seperate-sets">&#182;</a></h4>
+</div>
+</div>
+</div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># cardio specific processing</span>
-<span class="n">df_cardio</span><span class="p">[</span><span class="s1">&#39;Average Pace Numeric&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_cardio</span><span class="p">[</span><span class="s1">&#39;Average Pace&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">hour</span><span class="o">*</span> <span class="mi">60</span> <span class="o">+</span> <span class="n">x</span><span class="o">.</span><span class="n">minute</span><span class="p">)</span> <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">notnull</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="kc">False</span><span class="p">)</span>
-<span class="n">df_cardio</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># weightlifting specific processing</span>
+<span class="n">df_weightlifting</span><span class="p">[</span><span class="s1">&#39;Calculated 1RM&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_weightlifting</span><span class="p">[</span><span class="s1">&#39;Actual Lift&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">make_1rm</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+<span class="n">df_weightlifting</span><span class="p">[</span><span class="s1">&#39;Goal 1RM&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_weightlifting</span><span class="p">[</span><span class="s1">&#39;Goal 1RM&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;ffill&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Weightlifting&quot;</span><span class="p">)</span>
+<span class="n">df_weightlifting</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 </pre></div>
 
     </div>
@@ -14077,7 +14084,18 @@ Authentication successful.
 
 <div class="output_area">
 
-    <div class="prompt output_prompt">Out[8]:</div>
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Weightlifting
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[9]:</div>
 
 
 
@@ -14100,75 +14118,248 @@ Authentication successful.
   <thead>
     <tr style="text-align: right;">
       <th></th>
+      <th>Workout UID</th>
       <th>Rotation</th>
+      <th>Goal 1RM</th>
       <th>Workout</th>
       <th>Exercise</th>
       <th>Week</th>
-      <th>Average Pace</th>
-      <th>Total Distance</th>
+      <th>Sets</th>
+      <th>Reps</th>
+      <th>% of Goal 1RM</th>
+      <th>Actual Lift</th>
       <th>Date</th>
       <th>Time</th>
+      <th>Bodyweight</th>
       <th>Notes</th>
       <th>Timestamp</th>
-      <th>Average Pace Numeric</th>
-    </tr>
-    <tr>
-      <th>workout_uid</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
+      <th>Calculated 1RM</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>6_5.1</td>
-      <td>6.0</td>
-      <td>5.0</td>
-      <td>Run</td>
+      <td>0</td>
+      <td>7.1.1</td>
+      <td>7.0</td>
+      <td>NaN</td>
       <td>1.0</td>
-      <td>05:58:00</td>
-      <td>6.25km</td>
-      <td>2020-02-25</td>
-      <td>20:10:00</td>
-      <td>NaN</td>
-      <td>2020-02-25 20:10:00</td>
-      <td>358</td>
-    </tr>
-    <tr>
-      <td>6_5.2</td>
-      <td>6.0</td>
-      <td>5.0</td>
-      <td>Run</td>
-      <td>2.0</td>
-      <td>05:40:00</td>
-      <td>6.30km</td>
-      <td>2020-03-04</td>
-      <td>18:22:00</td>
-      <td>NaN</td>
-      <td>2020-03-04 18:22:00</td>
-      <td>340</td>
-    </tr>
-    <tr>
-      <td>6_5.3</td>
-      <td>6.0</td>
-      <td>5.0</td>
-      <td>Run</td>
+      <td>Shoulder Press</td>
+      <td>1.0</td>
       <td>3.0</td>
-      <td>06:01:00</td>
-      <td>6.31km</td>
-      <td>2020-03-09</td>
-      <td>19:47:00</td>
+      <td>5</td>
+      <td>65, 75, 85</td>
+      <td>5x50</td>
+      <td>2020-07-12</td>
+      <td>16:00:00</td>
       <td>NaN</td>
-      <td>2020-03-09 19:47:00</td>
-      <td>361</td>
+      <td>NaN</td>
+      <td>2020-07-12 16:00:00</td>
+      <td>58.333333</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>7.1.2</td>
+      <td>7.0</td>
+      <td>NaN</td>
+      <td>1.0</td>
+      <td>Shoulder Press</td>
+      <td>2.0</td>
+      <td>3.0</td>
+      <td>3</td>
+      <td>70, 80, 90</td>
+      <td>NaN</td>
+      <td>NaT</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaT</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>7.1.3</td>
+      <td>7.0</td>
+      <td>NaN</td>
+      <td>1.0</td>
+      <td>Shoulder Press</td>
+      <td>3.0</td>
+      <td>3.0</td>
+      <td>5 / 3 / 1</td>
+      <td>75, 85, 95</td>
+      <td>NaN</td>
+      <td>NaT</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaT</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[10]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># strava specific processing </span>
+
+<span class="n">df_strava</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_strava</span><span class="p">[</span><span class="s1">&#39;start_date_local&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+    <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">T%H:%M:%SZ&#39;</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">df_strava</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_strava</span><span class="p">[</span><span class="s1">&#39;start_date_local&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+    <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">T%H:%M:%SZ&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>
+<span class="p">)</span>
+<span class="n">df_strava</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_strava</span><span class="p">[</span><span class="s1">&#39;start_date_local&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+    <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">T%H:%M:%SZ&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="n">strava_cols</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;distance&#39;</span><span class="p">,</span> <span class="s1">&#39;moving_time&#39;</span><span class="p">,</span> <span class="s1">&#39;elapsed_time&#39;</span><span class="p">,</span> <span class="s1">&#39;total_elevation_gain&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;datetime&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span><span class="s1">&#39;start_latlng&#39;</span><span class="p">,</span> <span class="s1">&#39;end_latlng&#39;</span><span class="p">,</span> <span class="s1">&#39;start_latitude&#39;</span><span class="p">,</span> <span class="s1">&#39;start_longitude&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;average_speed&#39;</span><span class="p">,</span> <span class="s1">&#39;max_speed&#39;</span><span class="p">,</span> <span class="s1">&#39;elev_high&#39;</span><span class="p">,</span> <span class="s1">&#39;elev_low&#39;</span>
+<span class="p">]</span>
+
+<span class="n">df_strava</span> <span class="o">=</span> <span class="n">df_strava</span><span class="p">[</span><span class="n">strava_cols</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Strava&quot;</span><span class="p">)</span>
+<span class="n">df_strava</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Strava
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[10]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>distance</th>
+      <th>moving_time</th>
+      <th>elapsed_time</th>
+      <th>total_elevation_gain</th>
+      <th>type</th>
+      <th>id</th>
+      <th>datetime</th>
+      <th>date</th>
+      <th>time</th>
+      <th>start_latlng</th>
+      <th>end_latlng</th>
+      <th>start_latitude</th>
+      <th>start_longitude</th>
+      <th>average_speed</th>
+      <th>max_speed</th>
+      <th>elev_high</th>
+      <th>elev_low</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>Evening Run</td>
+      <td>7568.3</td>
+      <td>2525</td>
+      <td>3131</td>
+      <td>75.4</td>
+      <td>Run</td>
+      <td>3783975156</td>
+      <td>2020-07-19 18:06:06</td>
+      <td>2020-07-19</td>
+      <td>18:06:06</td>
+      <td>[-33.823825, 151.198758]</td>
+      <td>[-33.823843, 151.199172]</td>
+      <td>-33.823825</td>
+      <td>151.198758</td>
+      <td>2.997</td>
+      <td>10.2</td>
+      <td>95.8</td>
+      <td>77.9</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>Went for a run, forgot my puffer, had an asthm...</td>
+      <td>5060.9</td>
+      <td>1704</td>
+      <td>2256</td>
+      <td>71.3</td>
+      <td>Run</td>
+      <td>3768887579</td>
+      <td>2020-07-16 11:09:50</td>
+      <td>2020-07-16</td>
+      <td>11:09:50</td>
+      <td>[-33.823876, 151.198782]</td>
+      <td>[-33.823506, 151.198988]</td>
+      <td>-33.823876</td>
+      <td>151.198782</td>
+      <td>2.970</td>
+      <td>5.9</td>
+      <td>90.7</td>
+      <td>48.5</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Afternoon Run</td>
+      <td>6705.7</td>
+      <td>2183</td>
+      <td>2903</td>
+      <td>71.6</td>
+      <td>Run</td>
+      <td>3739581614</td>
+      <td>2020-07-10 14:32:06</td>
+      <td>2020-07-10</td>
+      <td>14:32:06</td>
+      <td>[-33.823841, 151.198873]</td>
+      <td>[-33.823844, 151.199316]</td>
+      <td>-33.823841</td>
+      <td>151.198873</td>
+      <td>3.072</td>
+      <td>6.4</td>
+      <td>95.8</td>
+      <td>77.9</td>
     </tr>
   </tbody>
 </table>
@@ -14191,16 +14382,15 @@ Authentication successful.
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[9]:</div>
+<div class="prompt input_prompt">In&nbsp;[11]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="o">%%time</span>
 <span class="c1"># write to Tableau compliant format    </span>
 
 <span class="n">make_conversion</span><span class="p">(</span><span class="n">df_weightlifting</span><span class="p">,</span> <span class="n">file_out_weightlifting</span><span class="p">)</span>
-<span class="n">clean_logs</span><span class="p">()</span>
+<span class="n">make_conversion</span><span class="p">(</span><span class="n">df_strava</span><span class="p">,</span> <span class="n">file_out_strava</span><span class="p">)</span>
 
-<span class="n">make_conversion</span><span class="p">(</span><span class="n">df_cardio</span><span class="p">,</span> <span class="n">file_out_cardio</span><span class="p">)</span>
 <span class="n">clean_logs</span><span class="p">()</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;SYSTEM COMPLETE: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
@@ -14222,7 +14412,8 @@ Authentication successful.
 
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>(100, 15)
+<pre>(116, 16)
+Table &#39;Extract&#39; does not exist in extract ./tableau/weightlifting_extract.hyper, creating.
 </pre>
 </div>
 </div>
@@ -14235,28 +14426,7 @@ Authentication successful.
 <div class="output_subarea output_stream output_stderr output_text">
 <pre>c:\python37\lib\site-packages\pandleau\pandleau.py:93: FutureWarning: A future version of pandas will default to `skipna=True`. To silence this warning, pass `skipna=True|False` explicitly.
   self._column_static_type = self._dataframe.apply(lambda x: pandleau.data_static_type(x), axis=0)
-</pre>
-</div>
-</div>
-
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>Table &#39;Extract&#39; does not exist in extract ./tableau/weightlifting_extract.hyper, creating.
-</pre>
-</div>
-</div>
-
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stderr output_text">
-<pre>processing table: 100it [00:00, 11073.78it/s]</pre>
+processing table: 116it [00:00, 10760.57it/s]</pre>
 </div>
 </div>
 
@@ -14267,11 +14437,8 @@ Authentication successful.
 
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>PYTHON: ./tableau/weightlifting_extract.hyper conversion complete
-PYTHON: 16/04/2020 17:06
-
-PYTHON: Directory cleaned
-PYTHON: 16/04/2020 17:06
-(29, 11)
+PYTHON: 20/07/2020 19:47
+(78, 18)
 </pre>
 </div>
 </div>
@@ -14283,7 +14450,7 @@ PYTHON: 16/04/2020 17:06
 
 <div class="output_subarea output_stream output_stderr output_text">
 <pre>
-processing table: 29it [00:00, 14457.96it/s]</pre>
+</pre>
 </div>
 </div>
 
@@ -14293,14 +14460,34 @@ processing table: 29it [00:00, 14457.96it/s]</pre>
 
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>Table &#39;Extract&#39; does not exist in extract ./tableau/cardio_extract.hyper, creating.
-PYTHON: ./tableau/cardio_extract.hyper conversion complete
-PYTHON: 16/04/2020 17:06
+<pre>Table &#39;Extract&#39; does not exist in extract ./tableau/strava_extract.hyper, creating.
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>processing table: 78it [00:00, 6492.86it/s]</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>PYTHON: ./tableau/strava_extract.hyper conversion complete
+PYTHON: 20/07/2020 19:47
 
 PYTHON: Directory cleaned
-PYTHON: 16/04/2020 17:06
-SYSTEM COMPLETE: 04/16/20 05:06:06 PM
-Wall time: 485 ms
+PYTHON: 20/07/2020 19:47
+SYSTEM COMPLETE: 07/20/20 07:47:58 PM
+Wall time: 508 ms
 </pre>
 </div>
 </div>

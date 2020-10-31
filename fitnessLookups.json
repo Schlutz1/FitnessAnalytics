@@ -1,0 +1,42 @@
+lookup_weightlifting = {
+    "Bench Press", 
+    "Deadlifts", 
+    "Shoulder Press", 
+    "Squat"
+}
+
+columns_weightlifting = {
+    'workout_uid' : 'Workout UID',
+    'Rotation' : 'Rotation',
+    '1RM' : 'Goal 1RM',
+    'Workout' : 'Workout',
+    'Exercise' : 'Exercise',
+    'Week' : 'Week',
+    'Sets' : 'Sets',
+    'Reps' : 'Reps',
+    '% 1RM (pace if running)' :  '% of Goal 1RM',
+    'Actual Lift' :  'Actual Lift',
+    'Date' : 'Date',
+    'Time' : 'Time',
+    'Bodyweight' : 'Bodyweight',
+    'Notes' : 'Notes',
+    'timestamp' : "Timestamp"
+}
+
+lookup_cardio = {
+    "Run"
+}
+
+columns_cardio = {
+    'workout_uid' : 'Workout UID',
+    'Rotation' : 'Rotation',
+    'Workout' : 'Workout',
+    'Exercise' : 'Exercise',
+    'Week' : 'Week',
+    '% 1RM (pace if running)' :  'Average Pace',
+    'Actual Lift' :  'Total Distance',
+    'Date' : 'Date',
+    'Time' : 'Time',
+    'Notes' : 'Notes',
+    'timestamp' : "Timestamp"
+}
