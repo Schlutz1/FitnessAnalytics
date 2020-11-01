@@ -34,7 +34,12 @@ def callEndpoint(weightlifting_conf):
                 mimetype=download_mimetype
             )
 
+def cleanWeighliftingActivities(df):
+    ''' Cleans up raw data '''
+
+    
+
 def getWeighliftingActivities(weightlifting_conf):
     ''' Extract weightlifting activities & metadata from Google Sheets '''
 
-    callEndpoint(weightlifting_conf)
+    df_weightlifting = callEndpoint(weightlifting_conf)

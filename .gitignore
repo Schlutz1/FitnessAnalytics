@@ -9,16 +9,22 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# secrets
+client_secrets.json
+
 # C extensions
 *.so
+
+# MacOS
+.DS_Store
 
 # Distribution / packaging
 .Python
 build/
-conf/
 extracts/
 archive/
 develop-eggs/
+pipeline/tmp/
 dist/
 downloads/
 eggs/

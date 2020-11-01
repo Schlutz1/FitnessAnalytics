@@ -8,7 +8,7 @@ import os
 
 # globals
 abs_path = os.path.dirname(os.path.abspath(__file__))
-log_path = os.path.join(ABS_PATH, "..", "log")
+log_path = os.path.join(abs_path, "..", "log")
 tableau_path = os.path.join(abs_path, "..", "extracts")
 
 
