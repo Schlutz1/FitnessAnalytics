@@ -25,6 +25,7 @@ eggs/
 resources/
 .eggs/
 lib/
+log/
 lib64/
 parts/
 sdist/
