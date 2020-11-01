@@ -17,6 +17,15 @@ mimetypes = {
     'application/vnd.google-apps.spreadsheet': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' # Drive Sheets files as MS Excel files.
 }
 
+exercise_lookup = {
+    'Bench Press',
+    'Deadlifts',
+    'Shoulder Press',
+    'Squat',
+    'Snatch',
+    'Clean & Jerk'
+}
+
 def callEndpoint(weightlifting_conf):
     file_list = drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
     for file1 in file_list:
@@ -34,12 +43,51 @@ def callEndpoint(weightlifting_conf):
                 mimetype=download_mimetype
             )
 
-def cleanWeighliftingActivities(df):
-    ''' Cleans up raw data '''
+def make_uid(r):
+    '''creates workout uid'''
+    return str(int(r['Rotation'])) + "." + str(int(r['Workout'])) + "." + str(int(r['Week']))
 
-    
+def make_datetime(r):
+    '''constructs datetime object for each workout'''
+    if pd.notnull(r['Date']) :
+        datetime_string = datetime.datetime.combine(r['Date'], r['Time'])
+        return datetime_string
+
+def make_projected_1rm(r):
+    '''calculates a theoretical 1RM for each lift'''
+    if pd.notnull(r['Actual Lift']) :
+        reps, w = r['Actual Lift'].split('x')[0], r['Actual Lift'].split('x')[1]
+        return f
+    return None
+
+def cleanWeighliftingActivities():
+    ''' Cleans up raw data '''
+    df = pd.read_excel(
+        os.path.join('tmp', 'tmp_FY20 H1 Workout Tracker.xlsx'), 
+        skiprows=3
+    )
+    # create uid
+    df[['Rotation', 'Workout']] = df[['Rotation', 'Workout']].fillna(method='ffill')
+
+    # retain populated exercise data
+    exercise_map = df['Exercise'].apply(lambda x: True if x in exercise_lookup else False)
+    df = df[
+        (exercise_map==True) &
+        (df['Week'].isna()!=True) &
+        (df['Actual Lift'].isna()!=True)
+    ]
+
+    # generate metadata
+    df['id'] = df.apply(make_uid, axis=1)
+    df['timestamp'] = df.apply(make_datetime, axis=1)
+    df['projected_1rm'] = df.apply(make_projected_1rm, axis=1)
+
+    return df
 
 def getWeighliftingActivities(weightlifting_conf):
     ''' Extract weightlifting activities & metadata from Google Sheets '''
 
-    df_weightlifting = callEndpoint(weightlifting_conf)
+    callEndpoint(weightlifting_conf)
+    df_weightlifting = cleanWeighliftingActivities()
+
+    return df_weightlifting
