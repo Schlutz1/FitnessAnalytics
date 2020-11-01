@@ -1,0 +1,14 @@
+{
+    "PIPELINE": {
+        "STRAVA" : false,
+        "WEIGHTLIFTING" : true
+    },
+    "STRAVA" : {
+        "URL_ACTIVITIES" : "https://www.strava.com/api/v3/activities",
+        "URL_TOKEN" : "https://www.strava.com/oauth/token?client_id={client_id}&client_secret={client_secret}&code={code}&grant_typeauthorization_code",
+        "URL_AUTH" : "http://www.strava.com/oauth/authorize?client_id={client_id}&response_type={response_type}&redirect_uri={redirect_uri}&scope={scope}"   
+    },
+    "WEIGHTLIFTING" : {
+        "FILE": "FY20 H1 Workout Tracker"
+    }
+}

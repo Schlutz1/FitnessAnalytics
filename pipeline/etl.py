@@ -1,6 +1,8 @@
 '''
 Pipeline for ETL of fitness data
-
+Currently implements pipelines for:
+* Running data, from Strava API
+* Weighlifting data, from Google Sheets
 '''
 
 # imports & modules
@@ -9,13 +11,15 @@ import datetime
 import os, sys
 import json
 
-import strava
+import weightlifting
 import settings
+import tableau
+import strava
 
 # system globals
-settings.getEnv()
 abs_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(abs_path)
+settings.getEnv()
 
 
 class FitnessHandler():
@@ -23,34 +27,39 @@ class FitnessHandler():
 
     def __init__(self):
         ''' globals for wrapper '''
+        self.current_date = datetime.datetime.now()
         with open(os.path.join('..', 'conf', 'endpoints.json')) as conf:
             self.endpoint_conf = json.load(conf)
-        
-        self.current_date = datetime.datetime.now()
 
-    def getRunning(self):
+    def extractStravaData(self):
         ''' Extracts running data from Strava '''
         df_strava = strava.getStravaActivities(self.endpoint_conf['STRAVA'])
         return df_strava
 
-    def getWeightlifting(self):
+    def extractWeightliftingData(self):
         ''' Extracts weightlifting data from Google Sheets '''
+        df_weightlifting = weightlifting.getWeighliftingActivities(self.endpoint_conf['WEIGHTLIFTING'])
+
+    def transformFitnessData(self):
+        ''' Merge datasets together '''
+        return None
+
+    def loadFitnessData(self):
+        ''' Loads fitness data into Tableau .hyper format '''
         return None
 
     def runPipeline(self):
         ''' Executes pipeline '''
-        print("Pipeline executing: {date}".format(
-            date = self.current_date
-        ))
-        return self.getRunning()
+        print("Pipeline executing: {date}".format(date = self.current_date))
+
+        if self.endpoint_conf['PIPELINE']['STRAVA']:
+            df_strava = self.extractStravaData()
+
+        if self.endpoint_conf['PIPELINE']['WEIGHTLIFTING']:
+            df_weightlifting = self.extractWeightliftingData()
 
 
 if __name__ == "__main__":
 
-    # run pipeline
     pipeline = FitnessHandler()
-    df_fitnessData = pipeline.runPipeline()
-    df_fitnessData.to_csv(
-        os.path.join(abs_path, '..', 'extracts', 'stravaExtract.csv'), 
-        index=False
-    )
+    pipeline.runPipeline()
