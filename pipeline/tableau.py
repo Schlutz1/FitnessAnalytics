@@ -42,4 +42,4 @@ def cleanLogs():
     for file in files_logs:
         os.rename(file, os.path.join(log_path, file))
 
-    print("\nPYTHON: Directory cleaned")
+    print("\nDirectory cleaned")

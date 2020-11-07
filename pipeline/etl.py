@@ -43,7 +43,7 @@ class FitnessHandler():
         return df_weightlifting
 
     def cleanFitnessData(self, df):
-        ''' Merge datasets together '''
+        ''' Standardizes dataframe format for concatting '''
         cols_new = [col.replace(" ", "_").lower() for col in list(df)]
         df.columns = cols_new
 
