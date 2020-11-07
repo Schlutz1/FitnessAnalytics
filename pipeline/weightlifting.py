@@ -5,6 +5,8 @@ Fns for extraction and processing of weightlifting data
 # modules & imports
 from pydrive.drive import GoogleDrive
 from pydrive.auth import GoogleAuth
+import pandas as pd
+import datetime
 import os, sys
 
 # globals
@@ -43,24 +45,29 @@ def callEndpoint(weightlifting_conf):
                 mimetype=download_mimetype
             )
 
-def make_uid(r):
+def makeUID(r):
     '''creates workout uid'''
     return str(int(r['Rotation'])) + "." + str(int(r['Workout'])) + "." + str(int(r['Week']))
 
-def make_datetime(r):
+def makeDatetime(r):
     '''constructs datetime object for each workout'''
     if pd.notnull(r['Date']) :
         datetime_string = datetime.datetime.combine(r['Date'], r['Time'])
         return datetime_string
 
-def make_projected_1rm(r):
-    '''calculates a theoretical 1RM for each lift'''
-    if pd.notnull(r['Actual Lift']) :
+def makeProjected1RM(r):
+    '''
+    calculates a theoretical 1RM for each lift
+    https://en.wikipedia.org/wiki/One-repetition_maximum#Calculating_1RM
+
+    currently calculating submaximal 1rm using Epley formula
+    '''
+    if pd.notnull(r['Actual Lift']):
         reps, w = r['Actual Lift'].split('x')[0], r['Actual Lift'].split('x')[1]
-        return f
+        return float(w) * (1 + (int(reps) / 30))
     return None
 
-def cleanWeighliftingActivities():
+def cleanWeightliftingActivities():
     ''' Cleans up raw data '''
     df = pd.read_excel(
         os.path.join('tmp', 'tmp_FY20 H1 Workout Tracker.xlsx'), 
@@ -78,16 +85,20 @@ def cleanWeighliftingActivities():
     ]
 
     # generate metadata
-    df['id'] = df.apply(make_uid, axis=1)
-    df['timestamp'] = df.apply(make_datetime, axis=1)
-    df['projected_1rm'] = df.apply(make_projected_1rm, axis=1)
+    df['id'] = df.apply(makeUID, axis=1)
+    df['timestamp'] = df.apply(makeDatetime, axis=1)
+    df['projected_1rm'] = df.apply(makeProjected1RM, axis=1)
 
     return df
 
-def getWeighliftingActivities(weightlifting_conf):
+def formatWeightliftingActivities(df, weightlifting_conf):
+    ''' Fn to format weighlfting activities to allow concat with other endpoints '''
+    df = df[weightlifting_conf['FIELDS']]
+    return df
+
+def getWeightliftingActivities(weightlifting_conf):
     ''' Extract weightlifting activities & metadata from Google Sheets '''
-
     callEndpoint(weightlifting_conf)
-    df_weightlifting = cleanWeighliftingActivities()
+    df_weightlifting = cleanWeightliftingActivities()
 
-    return df_weightlifting
+    return formatWeightliftingActivities(df_weightlifting, weightlifting_conf)

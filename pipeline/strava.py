@@ -12,6 +12,11 @@ import os, sys
 abs_path = os.path.dirname(os.path.abspath(__file__))
 resources_path = os.path.join(abs_path, '..', 'resources')
 
+strava_lookup = {
+    "start_date_local" : "timestamp",
+    "name" : "notes"
+}
+
 def getStravaSecrets() :
     '''fn to return strava secrets'''
     strava_secrets = {
@@ -73,13 +78,20 @@ def completeStravaAuth(strava_conf, strava_secrets, auth_url) :
     f_access_token = "access_token={access_token}".format(access_token = access_token)
     
     return f_access_token
-    
+
+def formatStravaActivities(df, strava_conf):
+    ''' Fn to format strava activities to allow concat with other endpoints '''
+    df = df[strava_conf['FIELDS']]
+    df.rename(columns=strava_lookup, inplace=True)
+    df['exercise'] = 'Running'
+    return df
+
 def getStravaActivities(strava_conf) :
     '''
     fn to return dataframe of all strava activities
     : param strava_conf: strava conf details
     '''
-    
+
     # globals
     strava_secrets = getStravaSecrets()
 
@@ -107,4 +119,4 @@ def getStravaActivities(strava_conf) :
             df_activities = df_activities.append(pd.DataFrame(_dict)) 
             page += 1
 
-    return df_activities
+    return formatStravaActivities(df_activities, strava_conf)
