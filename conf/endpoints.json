@@ -1,14 +1,20 @@
 {
     "PIPELINE": {
-        "STRAVA" : false,
-        "WEIGHTLIFTING" : true
+        "STRAVA" : true,
+        "WEIGHTLIFTING" : true,
+        "TABLEAU": true
     },
     "STRAVA" : {
         "URL_ACTIVITIES" : "https://www.strava.com/api/v3/activities",
         "URL_TOKEN" : "https://www.strava.com/oauth/token?client_id={client_id}&client_secret={client_secret}&code={code}&grant_typeauthorization_code",
-        "URL_AUTH" : "http://www.strava.com/oauth/authorize?client_id={client_id}&response_type={response_type}&redirect_uri={redirect_uri}&scope={scope}"   
+        "URL_AUTH" : "http://www.strava.com/oauth/authorize?client_id={client_id}&response_type={response_type}&redirect_uri={redirect_uri}&scope={scope}",
+        "FIELDS" : ["name", "distance", "moving_time", "elapsed_time", "total_elevation_gain", "id", "start_date_local", "start_latlng", "end_latlng", "achievement_count", "map", "average_speed", "max_speed", "elev_high", "elev_low", "pr_count"]   
     },
     "WEIGHTLIFTING" : {
-        "FILE": "FY20 H1 Workout Tracker"
+        "FILE": "FY20 H1 Workout Tracker",
+        "FIELDS": ["Exercise", "Actual Lift", "Bodyweight", "Notes", "id", "timestamp", "projected_1rm"]
+    },
+    "TABLEAU" : {
+        "FILE" : "fitness_activities"
     }
 }

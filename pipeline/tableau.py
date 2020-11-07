@@ -12,7 +12,7 @@ log_path = os.path.join(abs_path, "..", "log")
 tableau_path = os.path.join(abs_path, "..", "extracts")
 
 
-def makeConversion(df):
+def makeConversion(df, tableau_conf):
     """convert dataframe to .hyper extract"""
 
     if not os.path.isdir(tableau_path):
@@ -22,7 +22,7 @@ def makeConversion(df):
     df_tmp = pandleau(df)
 
     # overwrite with new file
-    file_out = os.path.join(tableau_path, "{0}.hyper".format(table))
+    file_out = os.path.join(tableau_path, "{file}.hyper".format(file = tableau_conf['FILE']))
     if os.path.isfile(file_out):
         os.remove(file_out)
     df_tmp.to_tableau(file_out, add_index=False)
