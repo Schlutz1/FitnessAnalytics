@@ -157,6 +157,9 @@ def generatePolylineDf(df):
     ''' Generate df for polyline data '''
 
     df_polyline = pd.DataFrame()
+    df.reset_index(inplace=True)
+    print(list(df))
+    
     for idx, grp in df.groupby(['id', 'timestamp', 'map']):
         decodedPolylineData = decodePolylineData(idx[2])
         df_run = pd.DataFrame(decodedPolylineData, columns=['lat', 'lng'])
