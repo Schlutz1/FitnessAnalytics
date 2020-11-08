@@ -8,6 +8,7 @@ import os
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
 
 # globals
 abs_path = os.path.dirname(os.path.abspath(__file__))
@@ -41,11 +42,17 @@ def completeStravaAuth(strava_conf, strava_secrets, auth_url) :
     '''
     
     # attempt to automate in selenium (PLEASE FIX)
-    driver = webdriver.Chrome(executable_path=os.path.join(resources_path, 'chromedriver'))
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    driver = webdriver.Chrome(
+        executable_path=os.path.join(resources_path, 'chromedriver'),
+        options = chrome_options
+    )
+    time.sleep(1)
     driver.get(auth_url)
 
 
-    time.sleep(1)
+    time.sleep(2)
     email_element = driver.find_element_by_name("email")
     email_element.send_keys(strava_secrets['strava_user'])
 
@@ -103,7 +110,6 @@ def getStravaActivities(strava_conf) :
         scope = strava_secrets['scope']
     )
     
-    time.sleep(1)
     f_access_token = completeStravaAuth(strava_conf, strava_secrets, auth_url)
 
     df_activities = pd.DataFrame()

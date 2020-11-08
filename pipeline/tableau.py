@@ -20,13 +20,12 @@ def makeConversion(df, file_name):
 
     # make conversion
     if df.shape[1] > 0:
-        df_tmp = pandleau(df)
 
         # overwrite with new file
-        file_out = os.path.join(tableau_path, f"{file_name}.hyper")
+        file_out = os.path.join(tableau_path, f"{file_name}.csv")
         if os.path.isfile(file_out):
             os.remove(file_out)
-        df_tmp.to_tableau(file_out, add_index=False)
+        df.to_csv(file_out, index=False)
 
 def cleanLogs():
     """clean log files function"""
