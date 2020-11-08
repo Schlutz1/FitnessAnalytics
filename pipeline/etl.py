@@ -22,6 +22,8 @@ abs_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(abs_path)
 settings.getEnv()
 
+extract_path = os.path.join(abs_path, '..', "extracts")
+conf_path = os.path.join(abs_path, '..', "conf")
 
 class FitnessHandler():
     ''' Wrapper for pipeline methods '''
@@ -29,7 +31,7 @@ class FitnessHandler():
     def __init__(self):
         ''' globals for wrapper '''
         self.pipeline_start = datetime.now()
-        with open(os.path.join('..', 'conf', 'endpoints.json')) as conf:
+        with open(os.path.join(conf_path, 'endpoints.json')) as conf:
             self.endpoint_conf = json.load(conf)
 
     def extractStravaData(self):
@@ -55,9 +57,9 @@ class FitnessHandler():
 
         return df
 
-    def loadFitnessData(self, df):
+    def loadFitnessData(self, df, analysis_type):
         ''' Loads fitness data into Tableau .hyper format '''
-        tableau.makeConversion(df, self.endpoint_conf['TABLEAU'])
+        tableau.makeConversion(df, self.endpoint_conf['TABLEAU']['FILES'][analysis_type])
         tableau.cleanLogs()
 
 
@@ -65,20 +67,24 @@ class FitnessHandler():
         ''' Executes pipeline '''
         print("Pipeline executing: {date}".format(date = self.pipeline_start))
 
-        df = pd.DataFrame()
+        df_fitness = pd.DataFrame()
 
         if self.endpoint_conf['PIPELINE']['STRAVA']:
             df_strava = self.extractStravaData()
             df_strava_clean = self.cleanFitnessData(df_strava)
-            df = df.append(df_strava_clean)
+            df_fitness = df_fitness.append(df_strava_clean)
+
+            # optional extraction for polyline analysis
+            df_strava_polyline = strava.generatePolylineDf(df_strava_clean)
 
         if self.endpoint_conf['PIPELINE']['WEIGHTLIFTING']:
             df_weightlifting = self.extractWeightliftingData()
             df_weightlifting_clean = self.cleanFitnessData(df_weightlifting)
-            df = df.append(df_weightlifting_clean)
+            df_fitness = df_fitness.append(df_weightlifting_clean)
 
-        if self.endpoint_conf['PIPELINE']['TABLEAU'] and df.shape[1] > 0:
-            self.loadFitnessData(df)
+        if self.endpoint_conf['PIPELINE']['TABLEAU']:
+            self.loadFitnessData(df_fitness, 'fitness_anlysis')
+            self.loadFitnessData(df_strava_polyline, 'polyline_analysis')
         
         run_time = datetime.combine(date.today(), datetime.now().time()) - datetime.combine(date.today(), self.pipeline_start.time())
         print(f"Pipeline executed, run time: {run_time}")

@@ -1,7 +1,7 @@
 {
     "PIPELINE": {
         "STRAVA" : true,
-        "WEIGHTLIFTING" : true,
+        "WEIGHTLIFTING" : false,
         "TABLEAU": true
     },
     "STRAVA" : {
@@ -15,6 +15,9 @@
         "FIELDS": ["Exercise", "Actual Lift", "Bodyweight", "Notes", "id", "timestamp", "projected_1rm"]
     },
     "TABLEAU" : {
-        "FILE" : "fitness_activities"
+        "FILES" : {
+            "fitness_anlysis" : "fitness_activities",
+            "polyline_analysis" : "polyline_activities"
+        }
     }
 }
