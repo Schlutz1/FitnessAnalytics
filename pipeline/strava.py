@@ -158,8 +158,8 @@ def generatePolylineDf(df):
 
     df_polyline = pd.DataFrame()
     df.reset_index(inplace=True)
-    print(list(df))
     
+    df['map'] = df['map'].astype(str) # cast to string to ensure hash
     for idx, grp in df.groupby(['id', 'timestamp', 'map']):
         decodedPolylineData = decodePolylineData(idx[2])
         df_run = pd.DataFrame(decodedPolylineData, columns=['lat', 'lng'])
@@ -170,5 +170,4 @@ def generatePolylineDf(df):
         df_polyline = df_polyline.append(df_run)
     
     df_polyline_filtered = filterAnomalousPolylineData(df_polyline)
-    print(df_polyline_filtered.shape)
     return df_polyline_filtered

@@ -71,13 +71,13 @@ class FitnessHandler():
         df_strava_polyline = pd.DataFrame()
 
         if self.endpoint_conf['PIPELINE']['STRAVA']:
-            #df_strava = self.extractStravaData()
-            #df_strava_clean = self.cleanFitnessData(df_strava)
-            #df_fitness = df_fitness.append(df_strava_clean)
+            df_strava = self.extractStravaData()
+            df_strava_clean = self.cleanFitnessData(df_strava)
+            df_fitness = df_fitness.append(df_strava_clean)
 
             # optional extraction for polyline analysis
-            #df_strava_clean.to_csv(os.path.join(extract_path, "strava.csv"))
-            df_strava_clean = pd.read_csv(os.path.join(extract_path, "strava.csv"))
+            # df_strava_clean.to_csv(os.path.join(extract_path, "strava.csv"))
+            # df_strava_clean = pd.read_csv(os.path.join(extract_path, "strava.csv"))
             df_strava_polyline = strava.generatePolylineDf(df_strava_clean)
 
         if self.endpoint_conf['PIPELINE']['WEIGHTLIFTING']:
