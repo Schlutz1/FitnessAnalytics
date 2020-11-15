@@ -70,7 +70,7 @@ def makeProjected1RM(r):
 def cleanWeightliftingActivities():
     ''' Cleans up raw data '''
     df = pd.read_excel(
-        os.path.join('tmp', 'tmp_FY20 H1 Workout Tracker.xlsx'), 
+        os.path.join('tmp', 'tmp_Workout Tracker.xlsx'), 
         skiprows=3
     )
     # create uid
