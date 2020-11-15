@@ -7,4 +7,4 @@ https://public.tableau.com/profile/max.schultz#!/vizhome/RunningHeatmap/RunningH
 
 ### Analytics & Tracking
 Training log dashboard served up here:
-https://public.tableau.com/profile/max.schultz#!/vizhome/FitnessTracker_16054386914870/FitnessTracker?publish=yes
+https://public.tableau.com/profile/max.schultz#!/vizhome/FitnessTracker_16054386914870/FitnessTracker
