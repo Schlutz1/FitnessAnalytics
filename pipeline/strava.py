@@ -45,7 +45,7 @@ def completeStravaAuth(strava_conf, strava_secrets, auth_url) :
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     driver = webdriver.Chrome(
-        executable_path=os.path.join(resources_path, 'chromedriver'),
+        executable_path=os.path.join(resources_path, 'chromedriver.exe'),
         options = chrome_options
     )
     time.sleep(1)

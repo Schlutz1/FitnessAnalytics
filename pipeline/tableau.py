@@ -1,6 +1,4 @@
-# Simple wrapper for tableau functions
-
-from pandleau import *
+# Simple wrapper for tableau function
 import pandas as pd
 import datetime
 import sys
@@ -22,10 +20,10 @@ def makeConversion(df, file_name):
     if df.shape[1] > 0:
 
         # overwrite with new file
-        file_out = os.path.join(tableau_path, f"{file_name}.csv")
+        file_out = os.path.join(tableau_path, f"{file_name}.xlsx")
         if os.path.isfile(file_out):
             os.remove(file_out)
-        df.to_csv(file_out, index=False)
+        df.to_excel(file_out)
 
 def cleanLogs():
     """clean log files function"""
