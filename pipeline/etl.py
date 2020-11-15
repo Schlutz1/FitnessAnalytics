@@ -53,6 +53,8 @@ class FitnessHandler():
             df['pipeline_date'] = self.pipeline_start
 
         df.drop_duplicates(subset=['id', 'exercise'], inplace=True)
+        df.sort_values(by=['exercise', 'timestamp'], inplace=True)
+        df['exercise_count'] = df.groupby((df['exercise'] != df['exercise'].shift(1)).cumsum()).cumcount()+1
         df.set_index(['id', 'exercise'], inplace=True)
 
         return df
